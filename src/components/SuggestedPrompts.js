@@ -2,21 +2,21 @@
 
 export default function SuggestedPrompts({ onSelectPrompt }) {
   const prompts = [
-    "What programs are available for admission?",
-    "Tell me about the fee structure for different programs.",
-    "How many campuses does KIPS have?",
-    "What are the admission requirements?",
+    "How do I check admission status?",
+    "What are the available programs?",
+    "Explain the fee structure",
+    "How to reset my password?"
   ];
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
       {prompts.map((prompt, index) => (
         <button
           key={index}
           onClick={() => onSelectPrompt(prompt)}
-          className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg transition-colors border border-gray-600 hover:border-gray-500"
+          className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:bg-gray-50 transition-colors shadow-sm hover:border-blue-300"
         >
-          {prompt}
+          <div className="text-sm text-gray-600">{prompt}</div>
         </button>
       ))}
     </div>

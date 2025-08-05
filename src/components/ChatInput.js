@@ -18,61 +18,48 @@ export default function ChatInput({ onSendMessage, isLoading = false }) {
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
-        // Here you would typically send the audio to a speech-to-text service
-        // For now, we'll just show a placeholder
-        console.log("Audio recorded:", audioBlob);
-        // You can integrate with Google Speech-to-Text or other services here
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Error starting recording:", error);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream
-        .getTracks()
-        .forEach((track) => track.stop());
-      setIsRecording(false);
-    }
-  };
-
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
     if (isRecording) {
-      stopRecording();
+      // Stop recording
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
     } else {
-      startRecording();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          // Handle the audio blob here if needed
+          console.log("Recorded audio blob:", audioBlob);
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Error accessing microphone:", err);
+      }
     }
   };
 
   return (
-    <div className="border-t border-gray-700 bg-gray-900 p-4">
-      <form onSubmit={handleSubmit} className="flex items-center gap-3">
+    <div className="border-t border-gray-200 bg-white p-4 shadow-sm">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <div className="flex-1 relative">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message here..."
-            className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            placeholder="Type your message..."
+            className="w-full bg-gray-50 border border-gray-200 rounded-full px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
             disabled={isLoading}
           />
         </div>
@@ -81,10 +68,10 @@ export default function ChatInput({ onSendMessage, isLoading = false }) {
           type="button"
           onClick={toggleRecording}
           className={cn(
-            "p-3 rounded-lg transition-colors",
+            "p-3 rounded-full transition-colors",
             isRecording
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+              ? "bg-red-500 hover:bg-red-600 text-white"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-600"
           )}
           disabled={isLoading}
         >
@@ -99,10 +86,10 @@ export default function ChatInput({ onSendMessage, isLoading = false }) {
           type="submit"
           disabled={!message.trim() || isLoading}
           className={cn(
-            "p-3 rounded-lg transition-colors",
+            "p-3 rounded-full transition-colors",
             message.trim() && !isLoading
-              ? "bg-purple-600 hover:bg-purple-700 text-white"
-              : "bg-gray-700 text-gray-500 cursor-not-allowed"
+              ? "bg-blue-500 hover:bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
           )}
         >
           <Send className="w-5 h-5" />
